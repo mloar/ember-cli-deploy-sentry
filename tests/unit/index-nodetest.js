@@ -121,7 +121,7 @@ describe('deploySentry plugin', function() {
           return previous;
         }, []);
 
-        assert.equal(messages.length, 4);
+        assert.equal(messages.length, 6);
       });
 
       it('adds default config to the config object', function() {
@@ -144,6 +144,8 @@ describe('deploySentry plugin', function() {
         context.config.deploySentry["filePattern"] = "/**/*.{js,map}";
         context.config.deploySentry["enableRevisionTagging"] = false;
         context.config.deploySentry["replaceFiles"] = true;
+        context.config.deploySentry["strictSSL"] = true;
+        context.config.deploySentry["repository"] = "https://github.com/mloar/ember-cli-deploy-sentry";
       });
 
       it('does not warn about missing optional config', function() {

@@ -35,6 +35,7 @@ module.exports = {
         enableRevisionTagging: true,
         replaceFiles: true,
         strictSSL: true,
+        repository: '',
       },
       requiredConfig: ['publicUrl', 'sentryUrl', 'sentryOrganizationSlug', 'sentryProjectSlug', 'revisionKey'],
 
@@ -58,7 +59,7 @@ module.exports = {
         fs.writeFileSync(indexPath, index);
       },
 
-      upload: function(/* context */) {
+      upload: function(context) {
         this.sentrySettings = {
           url: this.readConfig('sentryUrl'),
           publicUrl: this.readConfig('publicUrl'),
@@ -66,9 +67,11 @@ module.exports = {
           projectSlug: this.readConfig('sentryProjectSlug'),
           apiKey: this.readConfig('sentryApiKey'),
           bearerApiKey: this.readConfig('sentryBearerApiKey'),
-          release: this.readConfig('revisionKey')
+          release: this.readConfig('revisionKey'),
+          repository: this.readConfig('repository'),
+          environment: context.deployTarget
         };
-        this.baseUrl = urljoin(this.sentrySettings.url, '/api/0/projects/', this.sentrySettings.organizationSlug, this.sentrySettings.projectSlug, '/releases/');
+        this.baseUrl = urljoin(this.sentrySettings.url, '/api/0/organizations/', this.sentrySettings.organizationSlug, '/releases/');
         this.releaseUrl = urljoin(this.baseUrl, this.sentrySettings.release, '/');
 
         if(!this.sentrySettings.release) {
@@ -105,10 +108,12 @@ module.exports = {
             this.log('Replacing files.', {verbose: true});
             return RSVP.all(response.map(this._deleteFile, this))
               .then(this._doUpload.bind(this))
-              .then(this._logFiles.bind(this, response));
+              .then(this._logFiles.bind(this, response))
+              .then(this._doDeploy.bind(this));
           } else {
             this.log('Leaving files alone.', {verbose: true});
-            return this._logFiles(response);
+            return this._logFiles(response)
+                .then(this._doDeploy.bind(this));
           }
         }.bind(this));
       },
@@ -126,16 +131,34 @@ module.exports = {
           auth: this.generateAuth(),
           json: true,
           body: {
-            version: this.sentrySettings.release
+            version: this.sentrySettings.release,
+            projects: [this.sentrySettings.projectSlug],
+            refs: [{
+                repository: this.sentrySettings.repository, 
+                commit: this.sentrySettings.release
+            }]
           },
           resolveWithFullResponse: true,
           strictSSL: this.readConfig('strictSSL'),
         })
         .then(this._doUpload.bind(this))
         .then(this._logFiles.bind(this))
+        .then(this._doDeploy.bind(this))
         .catch(function(err){
           console.error(err);
           throw new SilentError('Creating release failed');
+        });
+      },
+      _doDeploy: function doDeploy() {
+        return request({
+          uri: urljoin(this.releaseUrl, 'deploys/'),
+          method: 'POST',
+          auth: this.generateAuth(),
+          json: true,
+          body: {
+              environment: this.sentrySettings.environment
+          },
+          strictSSL: this.readConfig('strictSSL'),
         });
       },
       _doUpload: function doUpload() {
