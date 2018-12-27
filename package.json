@@ -1,6 +1,6 @@
 {
   "name": "ember-cli-deploy-sentry",
-  "version": "0.5.4+:mel",
+  "version": "0.5.6+mel",
   "description": "Ember CLI Deploy plugin to upload javascript sourcemaps to sentry.",
   "directories": {
     "doc": "doc",
@@ -42,14 +42,14 @@
     "chai": "^2.2.0",
     "chai-as-promised": "^5.0.0",
     "mocha": "^2.2.4",
-    "mock-fs": "^3.7.0"
+    "mock-fs": "^4.7.0"
   },
   "keywords": [
     "ember-addon",
     "ember-cli-deploy-plugin"
   ],
   "dependencies": {
-    "ember-cli-babel": "^5.0.0",
+    "ember-cli-babel": "^6.6.0",
     "ember-cli-deploy-plugin": "^0.2.0",
     "glob": "^5.0.14",
     "request-promise": "^0.4.3",

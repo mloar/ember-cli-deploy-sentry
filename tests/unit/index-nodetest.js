@@ -56,7 +56,7 @@ describe('deploySentry plugin', function() {
 
     assert.equal(typeof plugin.configure, 'function');
     assert.equal(typeof plugin.prepare, 'function');
-    assert.equal(typeof plugin.upload, 'function');
+    assert.equal(typeof plugin.didPrepare, 'function');
     assert.equal(typeof plugin.didDeploy, 'function');
   });
 
@@ -158,6 +158,7 @@ describe('deploySentry plugin', function() {
 
           return previous;
         }, []);
+
         assert.equal(messages.length, 0);
       });
     });
@@ -168,10 +169,10 @@ describe('deploySentry plugin', function() {
       assert.equal(typeof subject.contentFor, 'function');
     });
     it('returns content for head-footer', function() {
-      assert.equal(subject.contentFor('head-footer'), '<meta name="sentry:revision"></meta>');
+      assert.equal(subject.contentFor('head-footer'), '<meta name="sentry:revision">');
     });
     it('does not return content for other types', function() {
-      assert.notEqual(subject.contentFor('head-barter'), '<meta name="sentry:revision"></meta>');
+      assert.notEqual(subject.contentFor('head-barter'), '<meta name="sentry:revision">');
     })
   });
 
